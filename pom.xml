@@ -6,6 +6,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>data-pre</module>
+    <module>apt-last-time</module>
   </modules>
 
   <groupId>com.uiys</groupId>
