@@ -28,7 +28,6 @@ import javax.lang.model.element.TypeElement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -223,7 +222,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 		  .addMember("value", "$S", "valid/{id}")
 		  .build());
 
-		CodeBlock codeBlock = CodeBlock.of("$T<$T> valid = $L.inValidG1(id); \n ", ClassName.get(Optional.class),
+		CodeBlock codeBlock = CodeBlock.of("$T<$T> valid = $L.validG1(id); \n ", ClassName.get(Optional.class),
 		  ClassName.get(typeElement), serviceFieldName);
 		builder.addCode(codeBlock);
 
@@ -283,7 +282,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 			  .addParameter(ParameterSpec.builder(getTableIdTypeName(typeElement), "id")
 				.addAnnotation(PathVariable.class)
 				.build())
-			  .addAnnotation(AnnotationSpec.builder(GetMapping.class)
+			  .addAnnotation(AnnotationSpec.builder(PostMapping.class)
 				.addMember("value", "$S", "findById/{id}")
 				.build())
 			  .addModifiers(Modifier.PUBLIC)
