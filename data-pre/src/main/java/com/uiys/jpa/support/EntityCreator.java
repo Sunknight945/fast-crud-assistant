@@ -2,6 +2,7 @@ package com.uiys.jpa.support;
 
 import com.uiys.jpa.constant.ErrorCode;
 import com.uiys.jpa.valid.BusinessException;
+import com.uiys.jpa.valid.UpdateGroup;
 import io.vavr.control.Try;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -11,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 
 
 @Slf4j
-public class EntityCreator<T, Id> implements Executor<T> {
+public class EntityCreator<T, Id> extends BaseEntityOperation implements Executor<T> {
 
 	private final CrudRepository<T, Id> crudRepository;
 
@@ -29,6 +30,7 @@ public class EntityCreator<T, Id> implements Executor<T> {
 
 	@Override
 	public Optional<T> execute() {
+		this.doValidate(t, UpdateGroup.class);
 		T t1 = Try.of(() -> this.crudRepository.save(t))
 		  .onSuccess(this.successHook(t))
 		  .onFailure(this.errorHook(new BusinessException(ErrorCode.ERROR_CODE)))
