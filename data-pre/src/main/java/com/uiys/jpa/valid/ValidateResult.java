@@ -3,32 +3,39 @@ package com.uiys.jpa.valid;
 
 public final class ValidateResult {
 
-	private String name;
-	private String message;
+	private String filed;
+	private Object iVal;
+	private String eMsg;
 
-	public ValidateResult(String name, String message) {
-		this.name = name;
-		this.message = message;
+	public ValidateResult(String filed, Object iVal, String eMsg) {
+		this.filed = filed;
+		this.iVal = iVal;
+		this.eMsg = eMsg;
 	}
 
-
-	public String getName() {
-		return name;
+	public String getFiled() {
+		return filed;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setFiled(String filed) {
+		this.filed = filed;
 	}
 
-	public String getMessage() {
-		return message;
+	public Object getiVal() {
+		return iVal;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public void setiVal(Object iVal) {
+		this.iVal = iVal;
 	}
 
+	public String geteMsg() {
+		return eMsg;
+	}
 
+	public void seteMsg(String eMsg) {
+		this.eMsg = eMsg;
+	}
 }
 
 
