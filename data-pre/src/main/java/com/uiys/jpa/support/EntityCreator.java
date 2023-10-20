@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 
 
 @Slf4j
-public class EntityCreator<T, Id> extends BaseEntityOperation implements Executor<T> {
+public class EntityCreator<T, Id> extends BaseEntityOperation implements Creator<T, Id>, UpdateHandler<T>, Executor<T> {
 
 	private final CrudRepository<T, Id> crudRepository;
 
@@ -23,10 +23,19 @@ public class EntityCreator<T, Id> extends BaseEntityOperation implements Executo
 		this.crudRepository = repository;
 	}
 
-	public EntityCreator<T, Id> create(Supplier<T> supplier) {
-		t = supplier.get();
+
+	@Override
+	public UpdateHandler<T> create(Supplier<T> updater) {
+		t = updater.get();
 		return this;
 	}
+
+	@Override
+	public Executor<T> update(Consumer<T> consumer) {
+		consumer.accept(t);
+		return this;
+	}
+
 
 	@Override
 	public Optional<T> execute() {
@@ -52,10 +61,7 @@ public class EntityCreator<T, Id> extends BaseEntityOperation implements Executo
 
 	}
 
-	public EntityCreator<T, Id> update(Consumer<T> consumer) {
-		consumer.accept(t);
-		return this;
-	}
+
 }
 
 

@@ -4,13 +4,13 @@ package com.uiys.jpa.valid;
 public final class ValidateResult {
 
 	private String filed;
-	private Object iVal;
-	private String eMsg;
+	private Object val;
+	private String msg;
 
-	public ValidateResult(String filed, Object iVal, String eMsg) {
+	public ValidateResult(String filed, Object val, String msg) {
 		this.filed = filed;
-		this.iVal = iVal;
-		this.eMsg = eMsg;
+		this.val = val;
+		this.msg = msg;
 	}
 
 	public String getFiled() {
@@ -21,20 +21,20 @@ public final class ValidateResult {
 		this.filed = filed;
 	}
 
-	public Object getiVal() {
-		return iVal;
+	public Object getVal() {
+		return val;
 	}
 
-	public void setiVal(Object iVal) {
-		this.iVal = iVal;
+	public void setVal(Object val) {
+		this.val = val;
 	}
 
-	public String geteMsg() {
-		return eMsg;
+	public String getMsg() {
+		return msg;
 	}
 
-	public void seteMsg(String eMsg) {
-		this.eMsg = eMsg;
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
 }
 
