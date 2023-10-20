@@ -4,13 +4,22 @@ import java.util.List;
 
 
 public class ValidationException extends RuntimeException {
-	private final List<ValidateResult> result;
 
-	public ValidationException(List<ValidateResult> list) {
-		this.result = list;
+	private List<ValidateResult> result;
+
+	public ValidationException(List<ValidateResult> result) {
+		this.result = result;
 	}
+
 
 	public List<ValidateResult> getResult() {
-		return this.result;
+		return result;
 	}
+
+	public void setResult(List<ValidateResult> result) {
+		this.result = result;
+	}
+
+
 }
+
