@@ -222,8 +222,8 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 		  .addMember("value", "$S", "valid/{id}")
 		  .build());
 
-		CodeBlock codeBlock = CodeBlock.of("$T<$T> valid = $L.validG1(id); \n ", ClassName.get(Optional.class),
-		  ClassName.get(typeElement), serviceFieldName);
+		CodeBlock codeBlock = CodeBlock.of("$T<$T> valid = $L.valid$L(id); \n ", ClassName.get(Optional.class),
+		  ClassName.get(typeElement), serviceFieldName, ClassName.get(typeElement));
 		builder.addCode(codeBlock);
 
 

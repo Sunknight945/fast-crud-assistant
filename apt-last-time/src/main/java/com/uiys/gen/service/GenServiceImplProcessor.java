@@ -121,7 +121,7 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		String repositoryName = repositoryName();
 		CodeBlock codeBlock =
 		  CodeBlock.of("return EntityOperations.doUpdate($L)\n" + "\t\t  .loadById(id)\n" + "\t" + "\t" + " " + " " +
-			".update($T::inValid)\n" + "\t\t  .execute();", repositoryName, ClassName.get(typeElement));
+			".update($T::invalid)\n" + "\t\t  .execute();", repositoryName, ClassName.get(typeElement));
 
 		valid.addCode(codeBlock);
 
