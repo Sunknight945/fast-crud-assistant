@@ -223,7 +223,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 		  .build());
 
 		CodeBlock codeBlock = CodeBlock.of("$T<$T> valid = $L.valid$L(id); \n ", ClassName.get(Optional.class),
-		  ClassName.get(typeElement), serviceFieldName, ClassName.get(typeElement));
+		  ClassName.get(typeElement), serviceFieldName, typeElement.getSimpleName());
 		builder.addCode(codeBlock);
 
 
