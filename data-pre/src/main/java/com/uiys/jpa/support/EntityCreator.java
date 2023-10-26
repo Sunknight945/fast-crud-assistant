@@ -1,7 +1,5 @@
 package com.uiys.jpa.support;
 
-import com.uiys.jpa.constant.ErrorCode;
-import com.uiys.jpa.valid.BusinessException;
 import com.uiys.jpa.valid.UpdateGroup;
 import io.vavr.control.Try;
 import java.util.Optional;
@@ -42,7 +40,7 @@ public class EntityCreator<T, Id> extends BaseEntityOperation implements Creator
 		this.doValidate(t, UpdateGroup.class);
 		T t1 = Try.of(() -> this.crudRepository.save(t))
 		  .onSuccess(successHook())
-		  .onFailure(errorHook(new BusinessException(ErrorCode.ERROR_CODE)))
+		  .onFailure(this::errorHook)
 		  .get();
 		return Optional.of(t1);
 	}
