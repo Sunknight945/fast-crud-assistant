@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 public interface Executor<T> {
 	Optional<T> execute();
 
-	Consumer<T> successHook(T t);
+	Consumer<T> successHook();
 
 	Consumer<Throwable> errorHook(Throwable t);
 }

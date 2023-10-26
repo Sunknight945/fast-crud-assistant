@@ -41,24 +41,21 @@ public class EntityCreator<T, Id> extends BaseEntityOperation implements Creator
 	public Optional<T> execute() {
 		this.doValidate(t, UpdateGroup.class);
 		T t1 = Try.of(() -> this.crudRepository.save(t))
-		  .onSuccess(this.successHook(t))
-		  .onFailure(this.errorHook(new BusinessException(ErrorCode.ERROR_CODE)))
+		  .onSuccess(successHook())
+		  .onFailure(errorHook(new BusinessException(ErrorCode.ERROR_CODE)))
 		  .get();
 		return Optional.of(t1);
 	}
 
 
 	@Override
-	public Consumer<T> successHook(T t) {
-		return t1 -> log.info("创建{}成功:", t1);
+	public Consumer<T> successHook() {
+		return t1 -> log.info("创建{}成功:", t);
 	}
 
 	@Override
-	public Consumer<Throwable> errorHook(Throwable t) {
-		return t1 -> {
-			log.warn("创建失败", t);
-		};
-
+	public Consumer<Throwable> errorHook(Throwable throwable) {
+		return t1 -> log.error("错误原因{},创建的数据{}", throwable, this.t);
 	}
 
 

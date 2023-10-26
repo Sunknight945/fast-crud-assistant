@@ -57,7 +57,7 @@ public class EntityUpdater<T, ID> extends BaseEntityOperation implements Loader<
 	}
 
 	@Override
-	public Consumer<T> successHook(T t) {
+	public Consumer<T> successHook() {
 		return t1 -> log.info("执行更新表{}的{}数据成功!", t.getClass()
 		  .getSimpleName(), t);
 	}

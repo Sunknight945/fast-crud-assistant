@@ -6,6 +6,7 @@ public enum ErrorCode implements BaseEnum {
 	NOTFOUND(1, "找不到"),
 	CAST_ERROR(2, "转换错误"),
 	ERROR_CODE(3, "未知原因"),
+	CREATE_ERROR(4, "创建失败"),
 	;
 
 	private final Integer code;
