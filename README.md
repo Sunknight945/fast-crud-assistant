@@ -34,6 +34,20 @@ updatedAt	更新时间
 
 使用操做如下:
 
+在启动类同级目录下:
+
+加入 package-info.java
+
+```java
+@QueryEntities(value = {BaseJpaAggregate.class})
+package com.uiys;
+
+import com.querydsl.core.annotations.QueryEntities;
+import com.uiys.jpa.support.BaseJpaAggregate;
+```
+
+
+
 按需求 在实体类上添加 如上注解.
 因需要借助利用apt生成相关的类用到 maven 的 compile(编译)所以需要在项目 pom 文件中的 dependencies 的依赖中添加如下坐标
 
