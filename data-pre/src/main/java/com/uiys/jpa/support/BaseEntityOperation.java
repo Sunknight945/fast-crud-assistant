@@ -28,8 +28,14 @@ public abstract class BaseEntityOperation implements EntityOperation {
 		if (!CollectionUtils.isEmpty(constraintViolations)) {
 			List<ValidateResult> validateResults = new ArrayList<>();
 			for (ConstraintViolation<T> violation : constraintViolations) {
-				validateResults.add(new ValidateResult(violation.getPropertyPath().toString(), violation.getInvalidValue()
-				  , violation.getMessageTemplate()));
+				String filedName = violation == null ? "null" : violation.getPropertyPath() == null ? "null" :
+				  violation.getPropertyPath()
+					.toString();
+				Object filedValue = violation == null ? "null" : violation.getInvalidValue() == null ? "null" :
+				  violation.getInvalidValue();
+				String msg = violation == null ? "null" : violation.getMessageTemplate() == null ? "null" :
+				  violation.getMessageTemplate();
+				validateResults.add(new ValidateResult(filedName, filedValue, msg));
 			}
 			throw new ValidationException(validateResults);
 		}
