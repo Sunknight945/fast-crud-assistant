@@ -12,6 +12,7 @@ import com.uiys.gen.AbstractCodeGenProcessor;
 import com.uiys.gen.DefaultNameContext;
 import com.uiys.jpa.constant.ErrorCode;
 import com.uiys.jpa.request.PageRequestWrapper;
+import com.uiys.jpa.request.PageUtil;
 import com.uiys.jpa.support.EntityOperations;
 import com.uiys.jpa.valid.BusinessException;
 import com.uiys.spi.CodeGenProcessor;
@@ -25,9 +26,6 @@ import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @AutoService(CodeGenProcessor.class)
@@ -75,35 +73,37 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .addAnnotation(Override.class)
 		  .addParameter(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
 			ClassName.get(context.getQueryPackageName(), context.getQueryClassName())), "wrapper")
-		  .returns(ParameterizedTypeName.get(ClassName.get(Page.class), ClassName.get(typeElement)));
+		  .returns(ParameterizedTypeName.get(ClassName.get(Page.class), ClassName.get(context.getVoPackageName(),
+			context.getVoClassName())));
 		String repositoryName = repositoryName();
-		CodeBlock codeBlock1 = CodeBlock.of("$T booleanBuilder = new $T();", ClassName.get(BooleanBuilder.class),
+		CodeBlock codeBlock1 = CodeBlock.of("$T booleanBuilder = new $T(); \n", ClassName.get(BooleanBuilder.class),
 		  ClassName.get(BooleanBuilder.class));
-
-		CodeBlock codeBlock2 = CodeBlock.of("Page<$T> createdAt = $L.findAll(booleanBuilder, $T.of(wrapper" +
-			".getPageNum() - " + "1," + "\n" + "\t\t  wrapper.getPageSize(), $T.by(Sort.Direction.DESC, \"createdAt\"," +
-			" " +
-			"\"id\")));\n" + "\t" + "\treturn new $T<>(createdAt.getContent(), createdAt.getPageable(), createdAt" +
-			".getTotalElements()" + ");", ClassName.get(typeElement), repositoryName, ClassName.get(PageRequest.class),
-		  ClassName.get(Sort.class), ClassName.get(PageImpl.class));
-
 		findByPage.addCode(codeBlock1);
+
+		CodeBlock codeBlock2 = CodeBlock.of("$T<$T> page = $L.findAll(booleanBuilder, $T.get(wrapper)); \n",
+		  ClassName.get(Page.class), ClassName.get(typeElement), repositoryName, ClassName.get(PageUtil.class));
 		findByPage.addCode(codeBlock2);
+
+		CodeBlock codeBlock3 = CodeBlock.of("return $T.change(page, $T::new); \n",
+		  ClassName.get(PageUtil.class), ClassName.get(context.getVoPackageName(), context.getVoClassName()));
+		findByPage.addCode(codeBlock3);
+
+
 		builder.addMethod(findByPage.build());
 	}
 
 	private void addFindByIdMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
 
+		ClassName vo = ClassName.get(context.getVoPackageName(), context.getVoClassName());
 		MethodSpec.Builder findById = MethodSpec.methodBuilder("findById")
 		  .addModifiers(Modifier.PUBLIC)
 		  .addParameter(getTableIdTypeName(typeElement), "id")
 		  .addAnnotation(Override.class)
-		  .returns(ClassName.get(typeElement));
-
+		  .returns(vo);
 		String repositoryName = repositoryName();
-		CodeBlock codeBlock = CodeBlock.of("return $L.findById(id)\n" + "\t\t  .orElseThrow(() -> new " + "$T($T" +
-			".NOTFOUND, \"id is: \" + id));", repositoryName, ClassName.get(BusinessException.class),
-		  ClassName.get(ErrorCode.class));
+		CodeBlock codeBlock = CodeBlock.of("return $L.findById(id)\n" + "\t\t" + ".map($T::new)" + "\t\t" + "  " +
+			".orElseThrow(() -> new " + "$T($T" + ".NOTFOUND, \"id is: \" + id));", repositoryName, vo,
+		  ClassName.get(BusinessException.class), ClassName.get(ErrorCode.class));
 
 		findById.addCode(codeBlock);
 
@@ -162,10 +162,9 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .addParameter(ClassName.get(context.getCreatorPackageName(), context.getCreatorClassName()), "creator");
 		String repositoryName = repositoryName();
 		CodeBlock codeBlock = CodeBlock.of("return $T.doCreate($L)\n" + "\t\t  .create(() -> " + "$T" + ".INSTANCE" +
-			".u2E" +
-			"(creator))\n" + "\t\t  .update($T::init)\n" + "\t\t  .execute();", ClassName.get(EntityOperations.class),
-		  repositoryName, ClassName.get(context.getMapperPackageName(), context.getMapperClassName()),
-		  ClassName.get(typeElement));
+			".u2Entity" + "(creator))\n" + "\t\t  .update($T::init)\n" + "\t\t  .execute();",
+		  ClassName.get(EntityOperations.class), repositoryName, ClassName.get(context.getMapperPackageName(),
+			context.getMapperClassName()), ClassName.get(typeElement));
 
 		create.addCode(codeBlock);
 		builder.addMethod(create.build());
@@ -188,8 +187,8 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .toString();
 		CodeBlock codeBlock =
 		  CodeBlock.of("return $T.doUpdate($L)\n" + "\t\t  .loadById(updater.getId" + "()" + ")\n" + "\t" + "\t  " +
-			  ".update(updater::$L)\n" + "\t\t  .execute();", ClassName.get(EntityOperations.class),
-			repositoryName, loadClass);
+			  ".update(updater::$L)\n" + "\t\t  .execute();", ClassName.get(EntityOperations.class), repositoryName,
+			loadClass);
 		updater.addCode(codeBlock);
 		builder.addMethod(updater.build());
 	}

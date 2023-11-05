@@ -52,7 +52,8 @@ public class GenServiceProcessor extends AbstractCodeGenProcessor {
 		  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 		  .addParameter(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
 			ClassName.get(context.getQueryPackageName(), context.getQueryClassName())), "wrapper")
-		  .returns(ParameterizedTypeName.get(ClassName.get(Page.class), ClassName.get(typeElement)))
+		  .returns(ParameterizedTypeName.get(ClassName.get(Page.class), ClassName.get(context.getVoPackageName(),
+		    context.getVoClassName())))
 		  .build();
 		builder.addMethod(findByPage);
 	}
@@ -61,7 +62,7 @@ public class GenServiceProcessor extends AbstractCodeGenProcessor {
 		MethodSpec findById = MethodSpec.methodBuilder("findById")
 		  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 		  .addParameter(getTableIdTypeName(typeElement), "id")
-		  .returns(ClassName.get(typeElement))
+		  .returns(ClassName.get(context.getVoPackageName(), context.getVoClassName()))
 		  .build();
 		builder.addMethod(findById);
 	}

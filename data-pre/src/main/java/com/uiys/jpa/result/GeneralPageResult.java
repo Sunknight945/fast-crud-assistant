@@ -40,6 +40,12 @@ public class GeneralPageResult<E> {
 		  .getPageSize(), page.getPageable()
 		  .getPageNumber() + 1, page.getTotalElements(), records);
 	}
+
+	public static <E, T> GeneralPageResult<E> of(Page<E> page) {
+		return of(page, page.getContent());
+	}
+
+
 }
 
 

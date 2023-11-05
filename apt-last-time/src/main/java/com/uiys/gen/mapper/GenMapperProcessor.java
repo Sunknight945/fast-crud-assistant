@@ -35,24 +35,56 @@ public class GenMapperProcessor extends AbstractCodeGenProcessor {
 
 		TypeSpec.Builder builder = genInstance(typeElement);
 		DefaultNameContext context = getNameContext(typeElement);
-		methodR2U(context, typeElement, builder);
-		methodR2C(context, typeElement, builder);
-		methodU2E(context, typeElement, builder);
-		methodR2Q(context, typeElement, builder);
+		r2Updator(context, typeElement, builder);
+		r2Creater(context, typeElement, builder);
+		u2Entity(context, typeElement, builder);
+		r2Query(context, typeElement, builder);
+		vo2Response(context, typeElement, builder);
+		vo2CustomerResponse(context, typeElement, builder);
 		genJavaFile(getPackageName(typeElement), builder);
+	}
+
+	private void vo2CustomerResponse(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+		boolean containsed = StringUtils.containsNull(context.getVoPackageName(), context.getVoClassName());
+		boolean containsed2 = StringUtils.containsNull(context.getResponsePackageName(),
+		  context.getResponseClassName());
+		if (!containsed && !containsed2) {
+			MethodSpec.Builder vo2Response = MethodSpec.methodBuilder("vo2CustomerResponse")
+			  .addModifiers(Modifier.DEFAULT,Modifier.PUBLIC)
+			  .addParameter(ClassName.get(context.getVoPackageName(), context.getVoClassName()), "vo")
+			  .addCode(CodeBlock.of("$T response = vo2Response(vo); \t\t", ClassName.get(context.getResponsePackageName(),
+				context.getResponseClassName())))
+			  .addCode(CodeBlock.of("return response;"))
+			  .returns(ClassName.get(context.getResponsePackageName(), context.getResponseClassName()));
+			builder.addMethod(vo2Response.build());
+		}
+	}
+
+	private void vo2Response(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+		boolean containsed = StringUtils.containsNull(context.getVoPackageName(), context.getVoClassName());
+		boolean containsed2 = StringUtils.containsNull(context.getResponsePackageName(),
+		  context.getResponseClassName());
+		if (!containsed && !containsed2) {
+			MethodSpec.Builder vo2Response = MethodSpec.methodBuilder("vo2Response")
+			  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+			  .addParameter(ClassName.get(context.getVoPackageName(), context.getVoClassName()), "vo")
+			  .returns(ClassName.get(context.getResponsePackageName(), context.getResponseClassName()));
+			builder.addMethod(vo2Response.build());
+		}
 	}
 
 	/**
 	 * reqeust to Query (domain)
 	 */
-	private void methodR2Q(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+	private void r2Query(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
 		boolean containsNull = StringUtils.containsNull(context.getQueryPackageName(),
 		  context.getQueryRequestPackageName());
 		if (!containsNull) {
-			MethodSpec build = MethodSpec.methodBuilder("r2Q")
+			MethodSpec build = MethodSpec.methodBuilder("r2Query")
 			  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 			  .returns(ClassName.get(context.getQueryPackageName(), context.getQueryClassName()))
-			  .addParameter(ClassName.get(context.getQueryRequestPackageName(), context.getQueryRequestClassName()), "query")
+			  .addParameter(ClassName.get(context.getQueryRequestPackageName(), context.getQueryRequestClassName()),
+				"query")
 			  .build();
 			builder.addMethod(build);
 		}
@@ -62,11 +94,10 @@ public class GenMapperProcessor extends AbstractCodeGenProcessor {
 	/**
 	 * update to entity
 	 */
-	private void methodU2E(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
-		boolean containsNull = StringUtils.containsNull(context.getUpdaterPackageName(),
-		  context.getUpdateClassName());
+	private void u2Entity(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+		boolean containsNull = StringUtils.containsNull(context.getUpdaterPackageName(), context.getUpdateClassName());
 		if (!containsNull) {
-			MethodSpec build = MethodSpec.methodBuilder("u2E")
+			MethodSpec build = MethodSpec.methodBuilder("u2Entity")
 			  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 			  .returns(ClassName.get(typeElement))
 			  .addParameter(ClassName.get(context.getCreatorPackageName(), context.getCreatorClassName()), "reqeust")
@@ -78,9 +109,9 @@ public class GenMapperProcessor extends AbstractCodeGenProcessor {
 	/**
 	 * (create)reqeust to create Dto
 	 */
-	private void methodR2C(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+	private void r2Creater(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
 		if (StrUtil.isNotBlank(context.getCreatorPackageName()) && StrUtil.isNotBlank(context.getCreatePackageName())) {
-			MethodSpec build = MethodSpec.methodBuilder("r2C")
+			MethodSpec build = MethodSpec.methodBuilder("r2Creater")
 			  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 			  .returns(ClassName.get(context.getCreatorPackageName(), context.getCreatorClassName()))
 			  .addParameter(ClassName.get(context.getCreatePackageName(), context.getCreateClassName()), "reqeust")
@@ -92,11 +123,11 @@ public class GenMapperProcessor extends AbstractCodeGenProcessor {
 	/**
 	 * (update)reqeust to update Dto
 	 */
-	private void methodR2U(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
+	private void r2Updator(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {
 		boolean containsNull = StringUtils.containsNull(context.getUpdaterPackageName(),
 		  context.getUpdatePackageName());
 		if (!containsNull) {
-			MethodSpec build = MethodSpec.methodBuilder("r2U")
+			MethodSpec build = MethodSpec.methodBuilder("r2Updator")
 			  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 			  .returns(ClassName.get(context.getUpdaterPackageName(), context.getUpdaterClassName()))
 			  .addParameter(ClassName.get(context.getUpdatePackageName(), context.getUpdateClassName()), "reqeust")

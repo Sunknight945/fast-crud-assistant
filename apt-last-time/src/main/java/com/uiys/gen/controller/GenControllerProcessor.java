@@ -13,15 +13,14 @@ import com.uiys.gen.AbstractCodeGenProcessor;
 import com.uiys.gen.DefaultNameContext;
 import com.uiys.jpa.constant.ErrorCode;
 import com.uiys.jpa.request.PageRequestWrapper;
+import com.uiys.jpa.request.PageUtil;
 import com.uiys.jpa.result.GeneralPageResult;
 import com.uiys.jpa.result.GeneralResult;
 import com.uiys.jpa.valid.BusinessException;
 import com.uiys.spi.CodeGenProcessor;
 import com.uiys.util.StringUtils;
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -130,7 +129,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 			  .returns(ParameterizedTypeName.get(ClassName.get(GeneralResult.class),
 				ClassName.get(nameContext.getVoPackageName(), nameContext.getVoClassName())));
 
-			CodeBlock codeBlock1 = CodeBlock.of("$T creator = $T.INSTANCE.r2C(createRequest); \n",
+			CodeBlock codeBlock1 = CodeBlock.of("$T creator = $T.INSTANCE.r2Creater(createRequest); \n",
 			  ClassName.get(nameContext.getCreatorPackageName(), nameContext.getCreatorClassName()),
 			  ClassName.get(nameContext.getMapperPackageName(), nameContext.getMapperClassName()));
 			createXX.addCode(codeBlock1);
@@ -177,7 +176,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 				.build());
 
 
-			CodeBlock codeBlock = CodeBlock.of("$T updater = $T.INSTANCE.r2U(updateRequest); \n",
+			CodeBlock codeBlock = CodeBlock.of("$T updater = $T.INSTANCE.r2Updator(updateRequest); \n",
 			  ClassName.get(nameContext.getUpdaterPackageName(), nameContext.getUpdaterClassName()),
 			  ClassName.get(nameContext.getMapperPackageName(), nameContext.getMapperClassName()));
 
@@ -273,11 +272,12 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 		return Optional.of(builder.build());
 	}
 
-	private Optional<MethodSpec> findById(String serviceFieldName, DefaultNameContext nameContext,
+	private Optional<MethodSpec> findById(String serviceFieldName, DefaultNameContext context,
 	                                      TypeElement typeElement) {
-		boolean containsNull = StringUtils.containsNull(nameContext.getVoPackageName(),
-		  nameContext.getMapperPackageName());
-		if (!containsNull) {
+		boolean containsNull = StringUtils.containsNull(context.getVoPackageName(), context.getMapperPackageName());
+		boolean containsNull2 = StringUtils.containsNull(context.getResponsePackageName(),
+		  context.getResponseClassName());
+		if (!containsNull && !containsNull2) {
 			return Optional.of(MethodSpec.methodBuilder("findById")
 			  .addParameter(ParameterSpec.builder(getTableIdTypeName(typeElement), "id")
 				.addAnnotation(PathVariable.class)
@@ -286,17 +286,14 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 				.addMember("value", "$S", "findById/{id}")
 				.build())
 			  .addModifiers(Modifier.PUBLIC)
-			  .addCode(CodeBlock.of("$T byId = $L.findById(id);\n"
-				, ClassName.get(typeElement)
-				, serviceFieldName))
-
-			  .addCode(CodeBlock.of("return $T.setNormalResult(new $T(byId));"
-				, GeneralResult.class, ClassName.get(nameContext.getVoPackageName()
-				  , nameContext.getVoClassName())))
-			  .returns(
-				ParameterizedTypeName.get(ClassName.get(GeneralResult.class),
-				ClassName.get(nameContext.getVoPackageName(), nameContext.getVoClassName()))
-			  )
+			  .addCode(CodeBlock.of("$T byId = $L.findById(id); \n", ClassName.get(context.getVoPackageName(),
+				context.getVoClassName()), serviceFieldName))
+			  .addCode(CodeBlock.of("$T response = $T.INSTANCE.vo2CustomerResponse(byId); \n",
+				ClassName.get(context.getResponsePackageName(), context.getResponseClassName()),
+				ClassName.get(context.getMapperPackageName(), context.getMapperClassName())))
+			  .addCode(CodeBlock.of("return $T.setNormalResult(response); \n", GeneralResult.class))
+			  .returns(ParameterizedTypeName.get(ClassName.get(GeneralResult.class),
+				ClassName.get(context.getResponsePackageName(), context.getResponseClassName())))
 			  .build());
 		}
 		return Optional.empty();
@@ -310,15 +307,16 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 	 * @param typeElement
 	 * @return
 	 */
-	private Optional<MethodSpec> findByPage(String serviceFieldName, DefaultNameContext nameContext, TypeElement typeElement) {
+	private Optional<MethodSpec> findByPage(String serviceFieldName, DefaultNameContext nameContext,
+	                                        TypeElement typeElement) {
 		boolean containsNull = StringUtils.containsNull(nameContext.getQueryRequestPackageName(),
-		  nameContext.getQueryPackageName(), nameContext.getMapperPackageName(), nameContext.getVoPackageName()/*,
-		  nameContext.getResponsePackageName()*/);
+		  nameContext.getQueryPackageName(), nameContext.getMapperPackageName(), nameContext.getVoPackageName());
 		if (!containsNull) {
 
 			ParameterSpec.Builder pageRequestParame =
 			  ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
-				  ClassName.get(nameContext.getQueryRequestPackageName(), nameContext.getQueryRequestClassName())), "pageReqeust")
+					ClassName.get(nameContext.getQueryRequestPackageName(), nameContext.getQueryRequestClassName())),
+				  "pageReqeust")
 				.addAnnotation(ClassName.get(RequestBody.class));
 
 			MethodSpec.Builder pageQuery = MethodSpec.methodBuilder("findByPage")
@@ -327,42 +325,35 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 				.addMember("value", "$S", "findByPage")
 				.build())
 			  .returns(ParameterizedTypeName.get(ClassName.get(GeneralResult.class),
-				ParameterizedTypeName.get(ClassName.get(GeneralPageResult.class), ClassName.get(nameContext.getVoPackageName(),nameContext.getVoClassName()))))
+				ParameterizedTypeName.get(ClassName.get(GeneralPageResult.class),
+				  ClassName.get(nameContext.getResponsePackageName(), nameContext.getResponseClassName()))))
 			  .addParameter(pageRequestParame.build());
 
-
-			CodeBlock codeBlock = CodeBlock.of("$T<$T> wrapper = $T.of(pageReqeust,\n" +
-				"\t  $T.INSTANCE.$L(pageReqeust.getQuery())); \n"
-			  , ClassName.get(PageRequestWrapper.class)
-			  , ClassName.get(nameContext.getQueryPackageName(), nameContext.getQueryClassName())
-			  , ClassName.get(PageRequestWrapper.class)
-			  , ClassName.get(nameContext.getMapperPackageName(), nameContext.getMapperClassName())
-			  , "r2Q");
+			CodeBlock codeBlock = CodeBlock.of("$T<$T> wrapper = $T.of(pageReqeust,\n" + "\t  $T.INSTANCE.$L" +
+				"(pageReqeust.getQuery())); \n", ClassName.get(PageRequestWrapper.class),
+			  ClassName.get(nameContext.getQueryPackageName(), nameContext.getQueryClassName()),
+			  ClassName.get(PageRequestWrapper.class), ClassName.get(nameContext.getMapperPackageName(),
+				nameContext.getMapperClassName()), "r2Query");
 			pageQuery.addCode(codeBlock);
 
-			CodeBlock codeBlock1 = CodeBlock.of("$T<$T> byPage = $L.findByPage(wrapper); \n"
-			  , ClassName.get(Page.class)
-			  , ClassName.get(typeElement)
-			  , serviceFieldName);
+			CodeBlock codeBlock1 = CodeBlock.of("$T<$T> page = $L.findByPage(wrapper); \n", ClassName.get(Page.class),
+			  ClassName.get(nameContext.getVoPackageName(), nameContext.getVoClassName()), serviceFieldName);
 			pageQuery.addCode(codeBlock1);
 
-			CodeBlock codeBlock2 = CodeBlock.of("$T<$T> records = byPage.get()\n" +
-				"\t  .map($T::new)\n" +
-				"\t  .collect($T.toList()); \n"
-			  , ClassName.get(List.class)
-			  , ClassName.get(nameContext.getVoPackageName(), nameContext.getVoClassName())
-			  , ClassName.get(nameContext.getVoPackageName(), nameContext.getVoClassName())
-			  , ClassName.get(Collectors.class)
-			);
+			CodeBlock codeBlock2 = CodeBlock.of("$T<$T> pageResponse = $T.change(page, $T" + ".INSTANCE" +
+				"::vo2CustomerResponse); \n",
+			  ClassName.get(Page.class),
+			  ClassName.get(nameContext.getResponsePackageName(), nameContext.getResponseClassName()),
+			  ClassName.get(PageUtil.class), ClassName.get(nameContext.getMapperPackageName(),
+				nameContext.getMapperClassName()));
 			pageQuery.addCode(codeBlock2);
 
-			CodeBlock codeBlock3 = CodeBlock.of("\t return $T.setNormalResult($T.of(byPage, records));"
-			  , ClassName.get(GeneralResult.class)
-			  , ClassName.get(GeneralPageResult.class)
-			);
+
+			CodeBlock codeBlock3 = CodeBlock.of("return $T.setNormalResult($T.of(pageResponse));",
+			  ClassName.get(GeneralResult.class), ClassName.get(GeneralPageResult.class));
 			pageQuery.addCode(codeBlock3);
 
-			return Optional.ofNullable(pageQuery.build());
+			return Optional.of(pageQuery.build());
 		}
 		return Optional.empty();
 	}
