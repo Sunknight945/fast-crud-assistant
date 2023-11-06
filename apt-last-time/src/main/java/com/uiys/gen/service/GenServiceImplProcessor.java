@@ -1,11 +1,13 @@
 package com.uiys.gen.service;
 
+import cn.hutool.core.collection.CollUtil;
 import com.google.auto.service.AutoService;
 import com.querydsl.core.BooleanBuilder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.uiys.gen.AbstractCodeGenProcessor;
@@ -18,7 +20,10 @@ import com.uiys.jpa.valid.BusinessException;
 import com.uiys.spi.CodeGenProcessor;
 import com.uiys.util.StringUtils;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -63,8 +68,58 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		addInValidXxMethod(context, builder, typeElement);
 		addFindByIdMethod(context, builder, typeElement);
 		addFindByPageXxMethod(context, builder, typeElement);
+		addFindAllMethod(context, builder, typeElement);
 		genJavaSourceFile(getPackageName(typeElement), typeElement.getAnnotation(GenServiceImpl.class)
 		  .sourcePath(), builder);
+	}
+
+	private void addFindAllMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
+		List<ParameterSpec> parameterSpecs = new ArrayList<>();
+		ParameterSpec wrapper =
+		  ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
+			  ClassName.get(context.getQueryPackageName(), context.getQueryClassName())), "wrapper")
+			.build();
+		parameterSpecs.add(wrapper);
+		ParameterSpec booleanBuilder = ParameterSpec.builder(ClassName.get(BooleanBuilder.class), "booleanBuilder")
+		  .build();
+		parameterSpecs.add(booleanBuilder);
+		ParameterSpec all = ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(List.class),
+			ClassName.get(context.getVoPackageName(), context.getVoClassName())), "all")
+		  .build();
+		parameterSpecs.add(all);
+
+
+		ClassName voClass = ClassName.get(context.getVoPackageName(), context.getVoClassName());
+		MethodSpec findByPage = MethodSpec.methodBuilder("findAll")
+		  .addModifiers(Modifier.PUBLIC, Modifier.PUBLIC)
+		  .addParameters(parameterSpecs)
+		  .addComment("\t添加\n" +
+			  "\tif (all == null) {  \n" +
+			  "\t\tall = new $T<>();\n" +
+			  "\t}\n" +
+			  "\t$T<$T> page = $L.findAll(booleanBuilder, $T.get(wrapper));\n" +
+			  "\tif ($T.isEmpty(page.getContent())) {\n" +
+			  "\t\treturn all;\n" +
+			  "\t}\n" +
+			  "\t$T<$T> collect = page.getContent()\n" +
+			  "\t  .stream()\n" +
+			  "\t  .map($T::new)\n" +
+			  "\t  .collect($T.toList());\n" +
+			  "\tall.addAll(collect);\n" +
+			  "\twrapper.setPageNum(wrapper.getPageNum() + 1);\n" +
+			  "\treturn findAll(wrapper, booleanBuilder, all);"
+			, ClassName.get(ArrayList.class), ClassName.get(Page.class),
+			typeElement, repositoryName(),
+			ClassName.get(PageUtil.class)
+			, ClassName.get(CollUtil.class),
+			ClassName.get(List.class),
+			voClass, voClass, ClassName.get(Collectors.class)
+
+		  )
+		  .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(context.getVoPackageName(),
+			context.getVoClassName())))
+		  .build();
+		builder.addMethod(findByPage);
 	}
 
 	private void addFindByPageXxMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {

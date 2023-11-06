@@ -1,8 +1,10 @@
 package com.uiys.gen.service;
 
 import com.google.auto.service.AutoService;
+import com.querydsl.core.BooleanBuilder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.uiys.gen.AbstractCodeGenProcessor;
@@ -11,6 +13,8 @@ import com.uiys.jpa.request.PageRequestWrapper;
 import com.uiys.spi.CodeGenProcessor;
 import com.uiys.util.StringUtils;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Modifier;
@@ -41,9 +45,36 @@ public class GenServiceProcessor extends AbstractCodeGenProcessor {
 		addInValidXxMethod(context, builder, typeElement);
 		addFindByIdMethod(context, builder, typeElement);
 		addFindByPageXxMethod(context, builder, typeElement);
+		addFindAllMethod(context, builder, typeElement);
 
 		genJavaSourceFile(getPackageName(typeElement), typeElement.getAnnotation(GenService.class)
 		  .sourcePath(), builder);
+	}
+
+	private void addFindAllMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
+		List<ParameterSpec> parameterSpecs = new ArrayList<>();
+		ParameterSpec wrapper =
+		  ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
+			  ClassName.get(context.getQueryPackageName(), context.getQueryClassName())), "wrapper")
+			.build();
+		parameterSpecs.add(wrapper);
+		ParameterSpec booleanBuilder = ParameterSpec.builder(ClassName.get(BooleanBuilder.class), "booleanBuilder")
+		  .build();
+		parameterSpecs.add(booleanBuilder);
+
+		ParameterSpec all = ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(List.class),
+			ClassName.get(context.getVoPackageName(), context.getVoClassName())), "all")
+		  .build();
+		parameterSpecs.add(all);
+
+
+		MethodSpec findByPage = MethodSpec.methodBuilder("findAll")
+		  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+		  .addParameters(parameterSpecs)
+		  .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(context.getVoPackageName(),
+			context.getVoClassName())))
+		  .build();
+		builder.addMethod(findByPage);
 	}
 
 	private void addFindByPageXxMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
@@ -53,7 +84,7 @@ public class GenServiceProcessor extends AbstractCodeGenProcessor {
 		  .addParameter(ParameterizedTypeName.get(ClassName.get(PageRequestWrapper.class),
 			ClassName.get(context.getQueryPackageName(), context.getQueryClassName())), "wrapper")
 		  .returns(ParameterizedTypeName.get(ClassName.get(Page.class), ClassName.get(context.getVoPackageName(),
-		    context.getVoClassName())))
+			context.getVoClassName())))
 		  .build();
 		builder.addMethod(findByPage);
 	}

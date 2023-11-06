@@ -17,6 +17,10 @@ public class PageRequestWrapper<E> {
 
 	public PageRequestWrapper() {
 	}
+	public PageRequestWrapper(Integer pageNum,Integer pageSize) {
+		this.pageNum = pageNum;
+		this.pageSize = pageSize;
+	}
 
 	private PageRequestWrapper(E query, Integer pageSize, Integer pageNum, Map<String, String> sort) {
 		this.query = query;
@@ -29,6 +33,7 @@ public class PageRequestWrapper<E> {
 	public static <E, T> PageRequestWrapper<E> of(PageRequestWrapper<T> wrapper, E query) {
 		return new PageRequestWrapper<E>(query, wrapper.pageSize, wrapper.pageNum, wrapper.sort);
 	}
+
 }
 
 
