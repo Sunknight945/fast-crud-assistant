@@ -16,8 +16,11 @@ public class PageRequestWrapper<E> {
 	private Map<String, String> sort;
 
 	public PageRequestWrapper() {
+		this.pageNum = 1;
+		this.pageSize = 1000;
 	}
-	public PageRequestWrapper(Integer pageNum,Integer pageSize) {
+
+	public PageRequestWrapper(Integer pageNum, Integer pageSize) {
 		this.pageNum = pageNum;
 		this.pageSize = pageSize;
 	}
