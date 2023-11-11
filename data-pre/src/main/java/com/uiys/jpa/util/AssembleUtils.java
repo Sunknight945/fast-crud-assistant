@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
 
 /**
  * @author uiys
@@ -31,6 +32,12 @@ public class AssembleUtils {
 		}
 	}
 
+	public static <E, R> List<R> content(Page<E> page, Function<E, R> function) {
+		return page.getContent()
+		  .stream()
+		  .map(function)
+		  .collect(Collectors.toList());
+	}
 
 }
 
