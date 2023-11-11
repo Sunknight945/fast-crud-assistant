@@ -15,12 +15,12 @@ public class PageRequestWrapper<E> {
 	private Integer pageNum;
 	private Map<String, String> sort;
 
-	public PageRequestWrapper() {
-		this.pageNum = 1;
-		this.pageSize = 1000;
+	public static <E> PageRequestWrapper<E> defaultWrapper() {
+		return new PageRequestWrapper<>(1, 1000);
 	}
 
-	public PageRequestWrapper(Integer pageNum, Integer pageSize) {
+
+	private PageRequestWrapper(Integer pageNum, Integer pageSize) {
 		this.pageNum = pageNum;
 		this.pageSize = pageSize;
 	}
