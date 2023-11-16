@@ -1,5 +1,6 @@
 package com.uiys.extra.filterpipeline.config;
 
+import cn.hutool.core.lang.Assert;
 import com.uiys.extra.filterpipeline.context.BusContext;
 import com.uiys.extra.filterpipeline.filterselector.FilterSelector;
 import com.uiys.extra.filterpipeline.filterselector.LocalBaseFilterSelector;
@@ -25,10 +26,8 @@ public class SelectorFactory {
 	private final Map<String, List<String>> bizFilterMap = new HashMap<>();
 
 	public FilterSelector filterSelector(BusContext busContext) {
-		if (!bizFilterMap.containsKey(busContext.getBizCode()
-		  .getName())) {
-			throw new BusinessException(ErrorCode.NOTFOUND, "找不到相关的业务代码!");
-		}
+		Assert.isTrue(bizFilterMap.containsKey(busContext.getBizCode()
+		  .getName()), () -> new BusinessException(ErrorCode.NOTFOUND, "找不到相关的业务代码!"));
 		LocalBaseFilterSelector filterSelector = new LocalBaseFilterSelector();
 		List<String> list = bizFilterMap.get(busContext.getBizCode()
 		  .getName());
