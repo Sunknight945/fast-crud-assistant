@@ -28,6 +28,12 @@ public final class PageUtil {
 		return get(wrapper, null, Lists.newArrayList());
 	}
 
+	public static <E> com.baomidou.mybatisplus.extension.plugins.pagination.Page<E> getPage(PageRequestWrapper<E> wrapper) {
+		boolean hasNull = ArrayUtil.hasNull(wrapper.getPageNum(), wrapper.getPageSize());
+		return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(hasNull ? 1 : wrapper.getPageNum(),
+		  hasNull ? 100 : wrapper.getPageSize());
+	}
+
 	public static <E, R> Page<R> change(Page<E> page, Function<E, R> function) {
 		List<R> collect = page.getContent()
 		  .stream()
