@@ -1,5 +1,6 @@
 package com.uiys.jpa.request;
 
+import java.io.Serializable;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,11 +10,14 @@ import lombok.ToString;
 @Data
 @ToString
 @EqualsAndHashCode
-public class PageRequestWrapper<E> {
+public class PageRequestWrapper<E> implements Serializable {
 	private E query;
 	private Integer pageSize;
 	private Integer pageNum;
 	private Map<String, String> sort;
+
+	public PageRequestWrapper() {
+	}
 
 	public static <E> PageRequestWrapper<E> defaultWrapper() {
 		return new PageRequestWrapper<>(1, 1000);
