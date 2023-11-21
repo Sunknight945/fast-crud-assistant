@@ -41,7 +41,8 @@ public class GenMapperProcessor extends AbstractCodeGenProcessor {
 		r2Query(context, typeElement, builder);
 		vo2Response(context, typeElement, builder);
 		vo2CustomerResponse(context, typeElement, builder);
-		genJavaFile(getPackageName(typeElement), builder);
+//		genJavaFile(getPackageName(typeElement), builder);
+		genJavaSourceFile(getPackageName(typeElement), typeElement.getAnnotation(GenMapper.class).sourcePath(),builder);
 	}
 
 	private void vo2CustomerResponse(DefaultNameContext context, TypeElement typeElement, TypeSpec.Builder builder) {

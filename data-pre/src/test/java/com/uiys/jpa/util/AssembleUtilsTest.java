@@ -1,7 +1,10 @@
 package com.uiys.jpa.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.ToString;
 import org.junit.jupiter.api.Test;
@@ -85,10 +88,49 @@ class AssembleUtilsTest {
 		private String outId;
 		private String name;
 
+
+
 		@Override
 		public int compareTo(Content o) {
 			return this.id > o.id ? this.id - o.id : this.hashCode() - o.hashCode();
 		}
 	}
+
+	private final Map<String, Say> cache = new ConcurrentHashMap<>();
+	@Test
+	public void testMap() {
+		Map<String, Say> map = new HashMap<>();
+		map.computeIfAbsent("uiys", Say::new).say();
+
+		cache.computeIfAbsent("uiiys",this::getSay).say();
+
+		cache.computeIfAbsent("uiiys", this::getSay)
+		  .say();
+		cache.computeIfAbsent("uiiys", this::getSay)
+		  .say();
+		cache.computeIfAbsent("uiiys2", this::getSay)
+		  .say();
+		cache.computeIfAbsent("uiiys2", this::getSay)
+		  .say();
+	}
+
+	public Say getSay(String s) {
+		Say say = new Say(s);
+		return say;
+	}
+
+	@Data
+	class Say {
+		private String name;
+
+		public Say(String name) {
+			this.name = name;
+		}
+
+		public void say() {
+			System.out.println("the name is " + this.name);
+		}
+	}
+
 
 }
