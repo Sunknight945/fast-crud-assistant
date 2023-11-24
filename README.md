@@ -489,11 +489,112 @@ public class ChargingWayConfiguration {
 
 ```
 
-
 # 3.增加内存数据处理器
 
+整体思路: 利用SpeL表达式结合函数式编程. 构建出处理这种数据结构的executor.
+一个这种数据可能有3个注解标志,SpeL的表达式放在注解的字段上面,执行的时候根据类找到
+所有的field,探查field有无次注解如果有则创建字段Executor后再创建类Executor.
+最后由类Executor执行.执行过程与手写的过程差不多, 但是要用到SpeL表达式和函数式编程.SpeL表达式用于构建字段Executor时的Function 和BiConsumer函数对象之后就交由 apply 和 accept 自动执行.
+
+有这一种数据处理情况
+```json
+{
+    "预先查询结构1": {
+        "自身信息1": "Welcome to JSON Viewer Pro",
+        "自身信息2": "Welcome to JSON Viewer Pro",
+        "其他数据_1_key": "数据1的key值",
+        "其他数据_2_key": "数据2的key值",
+        "其他数据_3_key": "数据3的key值"
+    },
+    "其他数据_1": {},
+    "其他数据_2": {},
+    "其他数据_3": []
+}
+```
+其中预先查询的数据已经出现, 需要对下面其他数据 1,2,3 做进一步的查询和拼装操做,其中 数据1 和数据 2 是单条对象, 而数据3是多条对象, 那么 对于此种数据结构, 可能会有6个步骤 1. 批量查询,2.数据转换, 3.数据做分组, 4.数据装配. 
+
+类似于: 下面两个最简形式.数据量越大操做越多,重复结构的代码也越多.
+```java
+public class OrderDetailVo {  
+    private OrderVO orderVO;// 原始查询到的数据  
+    private AddressVO address;  
+    private ShopVO shop;  
+}
+List<OrderDetailVo> sourceList = 查询处理的数据;
+
+List<String> shopIds = sourceList.stream()  
+  .map(item -> item.getOrderVO()  
+    .getShopId())  
+  .collect(Collectors.toList());  
+  
+Map<String, ShopVO> showIdMap = shopRepository.findAllById(shopIds)  
+  .stream()  
+  .map(ShopMapper.INSTANCE::u2Vo)  
+  .collect(Collectors.toMap(ShopVO::getId, Function.identity()));  
+  
+List<String> addressIds = sourceList.stream()  
+  .map(item -> item.getOrderVO()  
+    .getAddressId())  
+  .collect(Collectors.toList());  
+Map<String, AddressVO> addressIdMap = addressRepository.findAllById(addressIds)  
+  .stream()  
+  .map(AddressMapper.INSTANCE::u2Vo)  
+  .collect(Collectors.toMap(AddressVO::getId, Function.identity()));  
+  
+sourceList.forEach(item -> {  
+    item.setAddress(addressIdMap.getOrDefault(item.getOrderVO()  
+      .getAddressId(), null));  
+    item.setShop(showIdMap.getOrDefault(item.getOrderVO()  
+      .getShopId(), null));  
+});
+```
+但是这个是可以避免的.
+
+避免成这样在数据结构需要的字段上面加入这个注解就行了:
+```java
+@Data  
+public class OrderDetailVo {  
+    private OrderVO orderVO;  
+    @MemoryDataHandler(sourceKey = "#{orderVO.addressId}",   
+                       joinDataLoader = "#{@addressRepository.findAllById(#root)}",   
+                       dataKey = "#{id}",   
+                       joinDataConverter = "#{T(com.uiys.order.mapper.AddressMapper).INSTANCE.u2Vo(#root)}")  
+    private AddressVO address;  
+    @MemoryDataHandler(sourceKey = "#{orderVO.shopId}",   
+                       joinDataLoader = "#{@shopRepository.findAllById(#root)}",  
+                       dataKey = "#{id}",   
+                       joinDataConverter = "#{T(com.uiys.order.mapper.ShopMapper).INSTANCE.u2Vo(#root)}")  
+    private ShopVO shop;  
+  
+}
+```
+
+
+甚至这样:
+```java
+@Data  
+@MemoryDataHandlerTypeConfig(runWay = MemoryRunWays.Parallel)
+public class OrderDetailVo {  
+    private OrderVO orderVO;  
+    @MemoryDataHandler(sourceKey = "#{orderVO.addressId}",   
+                       joinDataLoader = "#{@addressRepository.findAllById(#root)}",   
+                       dataKey = "#{id}",   
+                       joinDataConverter = "#{T(com.uiys.order.mapper.AddressMapper).INSTANCE.u2Vo(#root)}")  
+    private AddressVO address;  
+    @MemoryDataHandler(sourceKey = "#{orderVO.shopId}",   
+                       joinDataLoader = "#{@shopRepository.findAllById(#root)}",  
+                       dataKey = "#{id}",   
+                       joinDataConverter = "#{T(com.uiys.order.mapper.ShopMapper).INSTANCE.u2Vo(#root)}")  
+    private ShopVO shop;  
+  
+}
+```
+
+然后一行代码搞定:
+```java
+memoryDataExecutor.load(sourceList);
+```
 
 
 
-
-#  END…
+#  未完待续…
