@@ -22,10 +22,8 @@ public class ParallelMemoryDataType extends MemoryDataTypeAbstract {
 
 	@Override
 	public <DATA> void execute(List<DATA> dataList) {
-		super.getMemoryDataFieldList()
-		  .forEach(memoryDataField -> memoryDataField.execute(dataList));
 		List<ExecutorTask<DATA>> executorTasks = new ArrayList<>();
-		for (MemoryDataField<DATA> ignored : getMemoryDataFieldList()) {
+		for (MemoryDataField<DATA> ignored : super.getMemoryDataFieldList()) {
 			executorTasks.add(new ExecutorTask<>(ignored, dataList));
 		}
 		try {

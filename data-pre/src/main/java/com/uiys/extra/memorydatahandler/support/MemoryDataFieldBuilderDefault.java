@@ -77,7 +77,7 @@ public class MemoryDataFieldBuilderDefault<DATA> implements MemoryDataFieldBuild
 
 	private BiConsumer<Object, Object> createNotFound(Class<DATA> cls, Field field) {
 		log.info("构建 {} 类, 字段{}的 notFound BiConsumer 函数!", cls.getSimpleName(), field.getName());
-		return (o, o2) -> log.info("字段未采集到数据{}", field.getName());
+		return (o, o2) -> log.info("{}字段{}未采集到数据", cls.getSimpleName(), field.getName());
 	}
 
 	class GetterData<T, R> implements Function<Object, Object> {

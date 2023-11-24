@@ -45,6 +45,8 @@ public class MemoryDataFieldDefault<DATA, SOURCE_KEY, JOIN_DATA, JOIN_RESULT> im
 				assembledJoinResultF.accept(data, joinResults);
 			} else {
 				notFoundJoinDataF.accept(data, sourceKey);
+				String[] strings = {data.toString(), sourceKey.toString()};
+				log.warn("未采集到{}, 字段值{}的数据!", strings );
 			}
 		}
 
