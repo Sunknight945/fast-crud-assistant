@@ -5,6 +5,7 @@ import java.util.List;
 
 /**
  * @author uiys
+ * 串行处理
  */
 public class SerialMemoryDataType extends MemoryDataTypeAbstract {
 
@@ -14,7 +15,7 @@ public class SerialMemoryDataType extends MemoryDataTypeAbstract {
 
 	@Override
 	public <DATA> void execute(List<DATA> dataList) {
-		getMemoryDataFieldList().forEach(memoryDataField -> memoryDataField.execute(dataList));
+		super.getMemoryDataFieldList().forEach(memoryDataField -> memoryDataField.execute(dataList));
 	}
 }
 

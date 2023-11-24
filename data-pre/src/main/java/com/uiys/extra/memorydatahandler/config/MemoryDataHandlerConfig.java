@@ -4,6 +4,11 @@ import com.uiys.extra.memorydatahandler.MemoryDataFieldBuilder;
 import com.uiys.extra.memorydatahandler.support.MemoryDataExecutorDefault;
 import com.uiys.extra.memorydatahandler.support.MemoryDataFieldBuilderDefault;
 import com.uiys.extra.memorydatahandler.support.MemoryDataTypeBuilderDefault;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -31,8 +36,9 @@ public class MemoryDataHandlerConfig {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public MemoryDataTypeBuilderDefault memoryDataTypeBuilderDefault(MemoryDataFieldBuilder memoryDataFieldBuilder) {
-		return new MemoryDataTypeBuilderDefault(memoryDataFieldBuilder);
+	public MemoryDataTypeBuilderDefault memoryDataTypeBuilderDefault(MemoryDataFieldBuilder memoryDataFieldBuilder,
+	                                                                 ExecutorService executorService) {
+		return new MemoryDataTypeBuilderDefault(memoryDataFieldBuilder, executorService);
 	}
 
 
@@ -43,6 +49,17 @@ public class MemoryDataHandlerConfig {
 	}
 
 
+	@Bean
+	public ExecutorService executorService() {
+		BasicThreadFactory basicThreadFactory = new BasicThreadFactory.Builder().namingPattern("memoryDataHandler-Thread" +
+			"-%d")
+		  .daemon(true)
+		  .build();
+		return new ThreadPoolExecutor(0, Runtime.getRuntime()
+		  .availableProcessors() * 2, 30, TimeUnit.SECONDS, new SynchronousQueue<>(), basicThreadFactory,
+		  new ThreadPoolExecutor.CallerRunsPolicy());
+
+	}
 }
 
 
