@@ -2,6 +2,14 @@
 
 基于模型(实体)快速构建增删改查的助手
 
+| 名称           | 原理                                                         |
+| -------------- | ------------------------------------------------------------ |
+| 代码生成器     | 利用apt技术结合实体类上面的@GenXXX等注解在maven编译期将数据模型的各个层级代码生成出来. |
+| 动态责任链     | 利用filterSelector动态控制责任链的执行                       |
+| 数据内存加载器 | SpeL和函数式编程结合来实现对源数据存存在的情况下对额外数据的加载以省去繁多的业务代码. |
+
+
+
 生成原理 java annotation process tools(编译时注解处理技术).
 
 好处,将精力更多的投入在对主业务的建模和处理上,将单一表的数据的基本操做交给它即可.
@@ -238,30 +246,27 @@ com:
 ## 根据业务代码的差异,自由组合业务执行链条, 动态实现跳链 和终止执行链, 执行链依赖上下文.
 
 里面的角色有
-###1. Filter  (单个执行单元) 
-###2. FilterChain (执行单元的链条)
-###3. FilterPipeline (控制执行单元的管道,获取FilterChain并让filterChain执行起来)
-###4. PipelineConfiguration(在启动的时候初始化的filterChain)
 
-###5. FilterContext(filter执行时候的上下文)
-###6. FilterSelector(执行单元的选择器 [根据Filter来查看这个默认的执行链上有没有当前的执行单元] )
-###7. LocalBaseFilterSelector (执行单元选择器的默认实现需要根据BizCode手动装填存放在Yaml文件中的Filter名称)
-###8. ChargingWayConfiguration(读取xx前缀的Filter 列表)
-
-
+1. Filter  (单个执行单元)
+2. FilterChain (执行单元的链条)
+3. FilterPipeline (控制执行单元的管道,获取FilterChain并让filterChain执行起来)
+4. PipelineConfiguration(在启动的时候初始化的filterChain)
+5. FilterContext(filter执行时候的上下文)
+6. FilterSelector(执行单元的选择器 [根据Filter来查看这个默认的执行链上有没有当前的执行单元] )
+7. LocalBaseFilterSelector (执行单元选择器的默认实现需要根据BizCode手动装填存放在Yaml文件中的Filter名称)
+8. ChargingWayConfiguration(读取xx前缀的Filter 列表)
 
 
 ##    然后整体的逻辑流程是 
 
-SpringBoot 在启动的时候 会在 PipelineConfiguration 里面根据写入的 FilterBean 在创建FilterPipeline的时候将 FilterBean 以node的形式写入到 pipeLine 的FilterChain中 这个FilterChain理应存放了所有的Filter.
+SpringBoot 在启动的时候 会在 PipelineConfiguration 里面根据写入的 FilterBean 在创建FilterPipeline的时候将 FilterBean 以node的形式写入到 pipeLine 的FilterChain中 这个FilterChain手动存放了指定业务下的所有的Filter.
 然后 根据请求 里面的 BizCode ,把需要的Filter的名字写入到 FilterSelector 的实现类 LocalBaseFilterSelector 的FilterNames中. 用与跳链.
 Context 里面会将请求放进去, 并支持 是否执行的Boolean vlaue. 然后 把 FilterSelector 放进去, 以便在链中判断当前filter需不需要执行.
 
-###1. **pipeline 找到 filterChain #hand(context),**
-###2. **filterChain 找到 filter #doFilter(context,filterChain).**
-###3. **在 filer 里面context获取filterName 做当前filter名字的对比. 有的话就执行, 没有的话 看 context继续不 , 如果继续 就 由filterChain #fireNext(context)**
-
-###4. **filterChain 的 next 如果不为null 就 next.hand(context); 把当前剩余的 (next)chain 走完.**
+1. pipeline 找到 filterChain #hand(context),
+2. filterChain 找到 filter #doFilter(context,filterChain).
+3. 在 filer 里面context获取filterName 做当前filter名字的对比. 有的话就执行, 没有的话 看 context继续不 , 如果继续 就 由filterChain #fireNext(context)
+4. filterChain 的 next 如果不为null 就 next.hand(context); 把当前剩余的 (next)chain 走完.
 
 
 
@@ -434,7 +439,7 @@ public abstract class AbstractChargeFilter<E extends ChargeContext> implements C
     public abstract void hand(E context);  
 }
 ```
- Filter  (单个执行单元其中的一个实现类)  还有其他![[Pasted image 20231025151358.png]]
+ Filter  (单个执行单元其中的一个实现类)  还有其他的Filter实现.
 ```java
 public class AddIntegralFilter extends AbstractChargeFilter<CurrentChargeContext> {  
   
@@ -527,7 +532,7 @@ List<String> shopIds = sourceList.stream()
     .getShopId())  
   .collect(Collectors.toList());  
   
-Map<String, ShopVO> showIdMap = shopRepository.findAllById(shopIds)  
+Map<String, ShopVO> shopIdMap = shopRepository.findAllById(shopIds)  
   .stream()  
   .map(ShopMapper.INSTANCE::u2Vo)  
   .collect(Collectors.toMap(ShopVO::getId, Function.identity()));  
@@ -544,7 +549,7 @@ Map<String, AddressVO> addressIdMap = addressRepository.findAllById(addressIds)
 sourceList.forEach(item -> {  
     item.setAddress(addressIdMap.getOrDefault(item.getOrderVO()  
       .getAddressId(), null));  
-    item.setShop(showIdMap.getOrDefault(item.getOrderVO()  
+    item.setShop(shopIdMap.getOrDefault(item.getOrderVO()  
       .getShopId(), null));  
 });
 ```
@@ -573,7 +578,7 @@ public class OrderDetailVo {
 甚至这样:
 ```java
 @Data  
-@MemoryDataHandlerTypeConfig(runWay = MemoryRunWays.Parallel)
+@MemoryDataHandlerTypeConfig(runWay = MemoryRunWays.Parallel) // 优化成使用ServiceExecutor多线程执行.
 public class OrderDetailVo {  
     private OrderVO orderVO;  
     @MemoryDataHandler(sourceKey = "#{orderVO.addressId}",   
@@ -597,4 +602,4 @@ memoryDataExecutor.load(sourceList);
 
 
 
-#  未完待续…
+#  未完待续(To Be Continue)…
