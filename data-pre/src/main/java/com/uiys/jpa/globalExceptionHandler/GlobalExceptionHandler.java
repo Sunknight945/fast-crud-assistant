@@ -16,22 +16,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(value = {Exception.class})
-	public GeneralResult<Object> handler(Exception e) {
-		if (e.getClass()
-		  .equals(BusinessException.class)) {
+	public GeneralResult<Object> handler(Exception e) throws Exception {
+		if (e.getClass().equals(BusinessException.class)) {
 			BusinessException e1 = (BusinessException) e;
-			return GeneralResult.setErrorResult(e1.getMsg()
-			  .getName(), e1.getData());
-		} else if (e.getClass()
-		  .equals(ValidationException.class)) {
-			return GeneralResult.setErrorResult(e.getMessage(), e.getCause()
-			  .getCause());
-		} else if (e.getClass()
-		  .equals(IllegalArgumentException.class)) {
+			return GeneralResult.setErrorResult(e1.getMsg().getName(), e1.getData());
+		}  else if (e.getClass().equals(IllegalArgumentException.class)) {
 			return GeneralResult.setErrorResult(e.getMessage(), e.getCause()
 			  .getCause());
 		}
-		return GeneralResult.setErrorResult(e.getMessage(), e);
+		throw e;
 	}
 
 	@ExceptionHandler(ValidationException.class)
