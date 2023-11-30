@@ -1,3 +1,4 @@
 #-------自动装配---------
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.uiys.extra.memorydatahandler.config.MemoryDataHandlerConfig
+  com.uiys.extra.memorydatahandler.config.MemoryDataHandlerConfig,\
+  com.uiys.extra.lazycatch.config.LazyCatchConfig
