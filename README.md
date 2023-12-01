@@ -617,23 +617,26 @@ memoryDataExecutor.load(sourceList);
 
 **专职处理单条数据简化代码的利器.**
 
-## 使用方式:
+## 使用方式:  
 
 1. 在数据对象上 添加 @LazyCatch 注解, 填入loader = "#{@addressRepository.findById(orderVO.addressId)}” 获取数据的方式和获取时值的来源.
 
 ```java
 @Data
 public class OrderDetailMyVoLazyLoaderImpl implements OrderDetailMyVoLazyLoader {
-    public OrderVO orderVO;
+	public OrderVO orderVO;
 
-    @LazyCatch(loader = "#{@addressRepository.findById(orderVO.addressId)}")
-    public Address address;
+	@LazyCatch(loader = "#{@addressRepository.findById(orderVO.addressId)}")
+	public Address address;
 
-    @LazyCatch(loader = "#{@shopRepository.findById(orderVO.shopId)}")
-    public Shop shop;
+	@LazyCatch(loader = "#{@shopRepository.findById(orderVO.shopId)}")
+	public Shop shop;
 
-    @LazyCatch(loader = "#{@accountRepository.findById(shop.ownerId)}")
-    public Account account;
+	@LazyCatch(loader = "#{@accountRepository.findById(shop.ownerId)}")
+	public Account account;
+
+	@LazyCatch(loader = "#{@testLinkObjServiceImpl.findByAccountIdAndShopId(account.id,shop.id)}")
+	public TestLinkObjVO testLinkObjVO;
 }
 ```
 
@@ -650,13 +653,89 @@ LazyCatchFactory lazyCatchFactory;
 OrderDetailMyVoLazyLoaderImpl proxy = lazyCatchFactory.lazyCatch(item);
 ```
 
-4. 调用get 方法即可减少业务的复杂度.
+4. 调用get 方法即可
 
 ```java
-System.out.println("proxy.getAddress() = " + proxy.getAddress());
-System.out.println("proxy.getShop() = " + proxy.getShop());
-System.out.println("proxy.getAccount() = " + proxy.getAccount());
+				System.out.println("proxy.getAddress() = " + proxy.getAddress());
+				System.out.println("proxy.getShop() = " + proxy.getShop());
+				System.out.println("proxy.getAccount() = " + proxy.getAccount());
+				System.out.println("proxy.getTestLinkObjVO() = " + proxy.getTestLinkObjVO());
 ```
+
+   5.结果
+
+```json
+{
+    "code": 200,
+    "msg": "ok",
+    "result": {
+        "pageSize": 1000,
+        "pageNum": 1,
+        "totalPage": 1,
+        "totalSize": 1,
+        "records": [
+            {
+                "orderVO": {
+                    "version": 0,
+                    "id": "0",
+                    "createdAt": 1700602137451,
+                    "updatedAt": 1700602137451,
+                    "validStatus": "INVALID",
+                    "shopId": "2",
+                    "addressId": "1"
+                },
+                "address": {
+                    "id": "1",
+                    "version": 0,
+                    "createdAt": "2023-11-21T21:25:24.478Z",
+                    "updatedAt": "2023-11-21T21:25:24.478Z",
+                    "validStatus": "EFFECTIVE",
+                    "countryId": "国",
+                    "provinceId": "省",
+                    "cityId": "市",
+                    "areaId": "区",
+                    "streetName": "街道",
+                    "streetNo": "街道号",
+                    "detail": "政府大楼"
+                },
+                "shop": {
+                    "id": "2",
+                    "version": 0,
+                    "createdAt": "2023-11-21T21:21:12.418Z",
+                    "updatedAt": "2023-11-21T21:21:12.418Z",
+                    "validStatus": "EFFECTIVE",
+                    "ownerId": "dc46606570b9419faec8ec892e263ab2",
+                    "shopName": "店铺2"
+                },
+                "account": {
+                    "id": "dc46606570b9419faec8ec892e263ab2",
+                    "version": 933,
+                    "createdAt": "2023-11-12T16:51:35.103Z",
+                    "updatedAt": "2023-11-28T10:15:08.834Z",
+                    "validStatus": "EFFECTIVE",
+                    "accountActivateStatus": "ACTIVE",
+                    "accountName": "名字",
+                    "accountPhone": "手机号"
+                },
+                "testLinkObjVO": {
+                    "version": 1,
+                    "id": "1",
+                    "createdAt": 32324,
+                    "updatedAt": 24,
+                    "validStatus": "EFFECTIVE",
+                    "someInfo": "这个就是一个设定",
+                    "accountId": "dc46606570b9419faec8ec892e263ab2",
+                    "shopId": "2"
+                }
+            }
+        ]
+    }
+}
+```
+
+
+
+
 
 
 
