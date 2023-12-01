@@ -650,7 +650,7 @@ LazyCatchFactory lazyCatchFactory;
 OrderDetailMyVoLazyLoaderImpl proxy = lazyCatchFactory.lazyCatch(item);
 ```
 
-4. 调用get 方法即可
+4. 调用get 方法即可减少业务的复杂度.
 
 ```java
 System.out.println("proxy.getAddress() = " + proxy.getAddress());
