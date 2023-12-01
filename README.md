@@ -602,4 +602,141 @@ memoryDataExecutor.load(sourceList);
 
 
 
+
+
+
+
+
+
+
+
+
+
+# 4.增加lazyCatch懒抓取数据处理器
+
+**专职处理单条数据简化代码的利器.**
+
+## 使用方式:
+
+1. 在数据对象上 添加 @LazyCatch 注解, 填入loader = "#{@addressRepository.findById(orderVO.addressId)}” 获取数据的方式和获取时值的来源.
+
+```java
+@Data
+public class OrderDetailMyVoLazyLoaderImpl implements OrderDetailMyVoLazyLoader {
+    public OrderVO orderVO;
+
+    @LazyCatch(loader = "#{@addressRepository.findById(orderVO.addressId)}")
+    public Address address;
+
+    @LazyCatch(loader = "#{@shopRepository.findById(orderVO.shopId)}")
+    public Shop shop;
+
+    @LazyCatch(loader = "#{@accountRepository.findById(shop.ownerId)}")
+    public Account account;
+}
+```
+
+2. 注入 lazyCatchFactory
+
+```java
+@Resource
+LazyCatchFactory lazyCatchFactory;
+```
+
+3. 将原对象 置入 OrderDetailMyVoLazyLoaderImpl proxy = lazyCatchFactory.lazyCatch(item); 并生成 proxy 对象.
+
+```java
+OrderDetailMyVoLazyLoaderImpl proxy = lazyCatchFactory.lazyCatch(item);
+```
+
+4. 调用get 方法即可
+
+```java
+System.out.println("proxy.getAddress() = " + proxy.getAddress());
+System.out.println("proxy.getShop() = " + proxy.getShop());
+System.out.println("proxy.getAccount() = " + proxy.getAccount());
+```
+
+
+
+
+
+## 解析: 使用到的技术: Spring 的aop代理,反射,SpeL 表达式.
+
+## 整体分为两个逻辑: 1.创建代理类, 2.代理类使用getXX() 方法.
+
+## 逻辑:
+
+ 1. ### 创建代理对象
+
+    - applicationContext里面放入代理对象,ProxyFactory设置代理对象,addAdvice(添加自定义通知)
+      - 自定义通知需要实现 MethodInterceptor invoke(@Nonnull MethodInvocation invocation) 和 InvocationHandler invoke(Object var1, Method var2, Object[] var3) 代理对象调用方法时 在 invoke(@Nonnull MethodInvocation invocation) 里面判断是否调用代理对象的方法还是原对象方法.
+
+	2. ### 代理类调用get方法获取各字段的值.
+
+    - 在代理类调用get字段的时候由于放置了自定义通知的缘故,所以会触发 invoke(@Nonnull MethodInvocation invocation),在此方法里面会判断 此 方法是代理方法等如下:
+
+      ```java
+        @Nullable
+      	@Override
+      	public Object invoke(@Nonnull MethodInvocation methodInvocation) throws Throwable {
+      		if (methodInvocation instanceof ProxyMethodInvocation) {
+      			ProxyMethodInvocation proxyMethodInvocation = (ProxyMethodInvocation) methodInvocation;
+      			return invoke(proxyMethodInvocation.getProxy(), proxyMethodInvocation.getMethod(),
+      			  proxyMethodInvocation.getArguments());
+      		}
+      		return invoke(methodInvocation.getThis(), methodInvocation.getMethod(), methodInvocation.getArguments());
+      	}
+      ```
+
+      再调用:
+
+      ```java
+      @Override
+      public Object invoke(Object proxy, Method method, Object[] argues) throws Throwable {
+          if (isGetter(method)) {
+             String propertyName = getPropertyName(method);
+             LazyFieldLoader propertyLazyLoader = this.lazyFieldLoaderMap.get(propertyName);
+      
+             if (propertyLazyLoader != null) {
+                Object data = method.invoke(target, argues);
+                if (data != null) {
+                   return data;
+                }
+                // 捞取数据
+                data = propertyLazyLoader.loadData(proxy);
+      
+                if (data != null) {
+                   if (data.getClass().isAssignableFrom(Optional.class)) {
+                      if (((Optional<?>) data).isPresent()){
+                         data = ((Optional<?>) data).get();
+                      }else {
+                         data = null;
+                      }
+                   }
+                   // 写入字段值
+                   FieldUtils.writeField(target, propertyName, data, true);
+                }
+                return data;
+             } else {
+                method.invoke(target, argues);
+             }
+          }
+      
+          return method.invoke(target, argues);
+      }
+      ```
+
+
+
+## 类结构图如下:
+
+![](https://s2.loli.net/2023/11/30/WLzSwpkAv4s3VPJ.jpg)
+
+
+
+
+
+
+
 #  未完待续(To Be Continue)…
