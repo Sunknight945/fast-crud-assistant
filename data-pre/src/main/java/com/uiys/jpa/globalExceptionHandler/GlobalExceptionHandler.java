@@ -5,6 +5,8 @@ import com.google.common.collect.Iterables;
 import com.uiys.jpa.result.GeneralResult;
 import com.uiys.jpa.valid.BusinessException;
 import com.uiys.jpa.valid.ValidationException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.UndeclaredThrowableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,16 +17,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(value = {Exception.class})
-	public GeneralResult<Object> handler(Exception e) throws Exception {
-		if (e.getClass().equals(BusinessException.class)) {
-			BusinessException e1 = (BusinessException) e;
-			return GeneralResult.setErrorResult(e1.getMsg().getName(), e1.getData());
-		}  else if (e.getClass().equals(IllegalArgumentException.class)) {
-			return GeneralResult.setErrorResult(e.getMessage(), e.getCause()
-			  .getCause());
-		}
-		throw e;
+
+
+	@ExceptionHandler(value = {BusinessException.class})
+	public GeneralResult<Object> handler(BusinessException exception) throws Exception {
+
+		return GeneralResult.setErrorResult(exception.getMsg()
+		  .getName(), exception.getData());
+
 	}
 
 	@ExceptionHandler(ValidationException.class)
@@ -35,6 +35,31 @@ public class GlobalExceptionHandler {
 		}
 		return GeneralResult.setErrorResult("校验问题", "校验");
 	}
+
+	@ExceptionHandler(value = {Exception.class})
+	public GeneralResult<Object> handler(Exception e) throws Exception {
+		if (e.getClass().equals(UndeclaredThrowableException.class)) {
+			UndeclaredThrowableException e1 = (UndeclaredThrowableException) e;
+			Throwable undeclaredThrowable = e1.getUndeclaredThrowable();
+			if (undeclaredThrowable.getClass().equals(InvocationTargetException.class)) {
+				InvocationTargetException invocationTargetException = (InvocationTargetException) undeclaredThrowable;
+				System.out.println("invocationTargetException = " + invocationTargetException);
+				Throwable targetException = invocationTargetException.getTargetException();
+				if (invocationTargetException.getTargetException().getClass().equals(BusinessException.class)) {
+					BusinessException targetException1 = (BusinessException) targetException;
+					return GeneralResult.setErrorResult(targetException1.getMessage(), targetException1.getData());
+				}
+			}
+			return GeneralResult.setErrorResult(undeclaredThrowable.getMessage(),undeclaredThrowable.getMessage());
+		} else if (e.getClass()
+		  .isAssignableFrom(IllegalArgumentException.class)) {
+			return GeneralResult.setErrorResult(e.getMessage(), e.getCause()
+			  .getCause());
+		}
+		throw e;
+	}
+
+
 
 
 }
