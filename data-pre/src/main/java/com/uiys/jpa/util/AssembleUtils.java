@@ -40,11 +40,22 @@ public class AssembleUtils {
 	}
 
 
-	public static <E, R> List<R> selectItem(List<E> list, Function<E, R> function) {
+	public static <E, R> List<R> selectItems(List<E> list, Function<E, R> function) {
 		return list.stream()
 		  .map(function)
 		  .collect(Collectors.toList());
 	}
+
+	public static <E, R> Map<R, E> selectItemsMap(List<E> list, Function<E, R> funKey) {
+		return list.stream()
+		  .collect(Collectors.toMap(funKey, Function.identity(), (oldOne, newOne) -> newOne));
+	}
+
+	public static <E, R, R2> Map<R, R2> selectItemsMap(List<E> list, Function<E, R> funKey, Function<E, R2> funValue) {
+		return list.stream()
+		  .collect(Collectors.toMap(funKey, funValue, (oldOne, newOne) -> newOne));
+	}
+
 
 }
 
