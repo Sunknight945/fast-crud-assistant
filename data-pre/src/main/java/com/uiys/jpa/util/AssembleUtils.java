@@ -39,6 +39,13 @@ public class AssembleUtils {
 		  .collect(Collectors.toList());
 	}
 
+
+	public static <E, R> List<R> selectItem(List<E> list, Function<E, R> function) {
+		return list.stream()
+		  .map(function)
+		  .collect(Collectors.toList());
+	}
+
 }
 
 

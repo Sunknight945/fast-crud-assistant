@@ -46,6 +46,7 @@ public class LazyTypeInterceptor implements InvocationHandler, MethodInterceptor
 			LazyFieldLoader propertyLazyLoader = this.lazyFieldLoaderMap.get(propertyName);
 
 			if (propertyLazyLoader != null) {
+				// 如果字段值已经被写入了, 那么就获取已经写入的值
 				Object data = method.invoke(target, argues);
 				if (data != null) {
 					return data;
