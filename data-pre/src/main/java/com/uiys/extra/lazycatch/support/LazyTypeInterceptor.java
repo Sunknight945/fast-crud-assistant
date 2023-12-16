@@ -33,8 +33,7 @@ public class LazyTypeInterceptor implements InvocationHandler, MethodInterceptor
 	public Object invoke(@Nonnull MethodInvocation methodInvocation) throws Throwable {
 		if (methodInvocation instanceof ProxyMethodInvocation) {
 			ProxyMethodInvocation proxyMethodInvocation = (ProxyMethodInvocation) methodInvocation;
-			return invoke(proxyMethodInvocation.getProxy(), proxyMethodInvocation.getMethod(),
-			  proxyMethodInvocation.getArguments());
+			return invoke(proxyMethodInvocation.getProxy(), proxyMethodInvocation.getMethod(), proxyMethodInvocation.getArguments());
 		}
 		return invoke(methodInvocation.getThis(), methodInvocation.getMethod(), methodInvocation.getArguments());
 	}

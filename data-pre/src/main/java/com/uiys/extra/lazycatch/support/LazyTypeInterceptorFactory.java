@@ -19,16 +19,17 @@ public class LazyTypeInterceptorFactory {
 
 
 	public LazyTypeInterceptor createLazyType(Class<?> tCls, Object target) {
-		Map<String, LazyFieldLoader> lazyFieldLoaderMap = this.lazyTypeInterceptorMap.computeIfAbsent(tCls,
-		  targetCls -> createForClass(targetCls));
+		Map<String, LazyFieldLoader> lazyFieldLoaderMap = lazyTypeInterceptorMap.computeIfAbsent(tCls, this::createForClass);
 		return new LazyTypeInterceptor(lazyFieldLoaderMap, target);
 	}
 
 	private Map<String, LazyFieldLoader> createForClass(Class createForClas) {
 		List<LazyFieldLoader> lazyFieldLoaders = lazyFieldLoaderFactory.createFieldLoader(createForClas);
 		return lazyFieldLoaders.stream()
-		  .collect(Collectors.toMap(lazyFieldLoader -> lazyFieldLoader.getField()
-			.getName(), lazyFieldLoader -> lazyFieldLoader, (keyOld, keyNew) -> keyNew));
+		  .collect(Collectors.toMap(
+			lazyFieldLoader -> lazyFieldLoader.getField().getName(),
+		    lazyFieldLoader -> lazyFieldLoader,
+		    (keyOld, keyNew) -> keyNew));
 	}
 
 
