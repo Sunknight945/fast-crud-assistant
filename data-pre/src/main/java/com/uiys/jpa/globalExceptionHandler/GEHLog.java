@@ -19,7 +19,7 @@ public class GEHLog {
 	public Object log(ProceedingJoinPoint pjp) {
 		Object[] exType = pjp.getArgs();
 		Object exReason = pjp.proceed(exType);
-		log.info(ExReason.in(exReason));
+		log.error(ExReason.in(exReason));
 		return exReason;
 	}
 
