@@ -24,11 +24,21 @@ class LazyCatchFactoryTest {
 			applicationContext);
 
 		ObjectLazy objectLazy = new ObjectLazy();
-		objectLazy.setLinkId("linkId");
+		objectLazy.setLinkId("你好嘛");
 
 		ObjectLazy objectLazy1 = lazyCatchFactory.lazyCatch(objectLazy);
 
 		List<LinkObjOne> linkObjOnes = objectLazy1.getLinkObjOnes();
+
+		System.out.println("linkObjOnes = " + linkObjOnes);
+
+
+		ObjectLazy objectLazy2 = new ObjectLazy();
+		objectLazy2.setLinkId("我很好");
+
+		ObjectLazy objectLazy3 = lazyCatchFactory.lazyCatch(objectLazy2);
+
+	    linkObjOnes = objectLazy3.getLinkObjOnes();
 
 		System.out.println("linkObjOnes = " + linkObjOnes);
 	}
