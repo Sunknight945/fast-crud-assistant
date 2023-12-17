@@ -1,14 +1,16 @@
 package com.uiys.jpa.result;
 
+import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 
+/**
+ * @author uiys
+ */
 @Data
 @EqualsAndHashCode
-@ToString
-public class GeneralResult<E> {
+public class GeneralResult<E> implements Serializable {
 
 	private Integer code;
 	private String msg;
@@ -42,6 +44,14 @@ public class GeneralResult<E> {
 		return setErrorResult("error", e);
 	}
 
+	@Override
+	public String toString() {
+		return "GeneralResult{" +
+		  "code=" + code +
+		  ", msg='" + msg + '\'' +
+		  ", result=" + result +
+		  '}';
+	}
 }
 
 
