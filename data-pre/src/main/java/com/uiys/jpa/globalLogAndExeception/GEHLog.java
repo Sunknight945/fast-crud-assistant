@@ -1,4 +1,4 @@
-package com.uiys.jpa.globalExceptionHandler;
+package com.uiys.jpa.globalLogAndExeception;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class GEHLog {
 	@SneakyThrows
-	@Around(value = "execution(* com.uiys.jpa.globalExceptionHandler.GlobalExceptionHandler.*(..))")
+	@Around(value = "execution(* com.uiys.jpa.globalLogAndExeception.GlobalExceptionHandler.*(..))")
 	public Object log(ProceedingJoinPoint pjp) {
 		Object[] exType = pjp.getArgs();
 		Object exReason = pjp.proceed(exType);

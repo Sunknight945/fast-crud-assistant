@@ -1,4 +1,4 @@
-package com.uiys.jpa.globalExceptionHandler;
+package com.uiys.jpa.globalLogAndExeception;
 
 
 import com.google.common.collect.Iterables;

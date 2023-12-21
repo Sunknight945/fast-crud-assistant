@@ -1,4 +1,4 @@
-package com.uiys.jpa.globalExceptionHandler;
+package com.uiys.jpa.globalLogAndExeception;
 
 import cn.hutool.json.JSONUtil;
 import java.io.Serializable;
