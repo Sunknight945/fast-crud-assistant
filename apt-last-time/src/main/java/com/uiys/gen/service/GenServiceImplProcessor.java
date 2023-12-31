@@ -142,8 +142,8 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .returns(vo);
 		String repositoryName = repositoryName();
 		CodeBlock codeBlock = CodeBlock.of("return $L.findById(id)\n" + "\t\t" + ".map($T::new)\n" + "\t\t" +
-			".orElseThrow" + "(() -> new " + "$T($T" + ".NOTFOUND, \"id is: \" + id));", repositoryName, vo,
-		  ClassName.get(BusinessException.class), ClassName.get(ErrorCode.class));
+			".orElseThrow" + "(() -> new " + "$T($T" + ".NOTFOUND, \"data $L.id: \" + id));", repositoryName, vo,
+		  ClassName.get(BusinessException.class), ClassName.get(ErrorCode.class), getEntity(typeElement));
 
 		findById.addCode(codeBlock);
 

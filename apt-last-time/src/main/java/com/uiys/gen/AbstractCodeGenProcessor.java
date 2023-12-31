@@ -272,6 +272,12 @@ public abstract class AbstractCodeGenProcessor implements CodeGenProcessor {
 		return idTypeName;
 	}
 
+	protected String getEntity(TypeElement typeElement){
+		return ClassName.get(typeElement).simpleName();
+	}
+
+
+
 	protected void addIdSetterAndGetter(TypeSpec.Builder builder, TypeName idType) {
 		FieldSpec.Builder id = FieldSpec.builder(idType, "id", Modifier.PRIVATE)
 		  .addAnnotation(AnnotationSpec.builder(Schema.class)

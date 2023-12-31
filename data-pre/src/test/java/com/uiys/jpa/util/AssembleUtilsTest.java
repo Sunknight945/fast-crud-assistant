@@ -132,5 +132,22 @@ class AssembleUtilsTest {
 		}
 	}
 
+	@Test
+	public void testSplit() {
+		String tempName = "MyNameIsIceClean".replaceAll("[A-Z]", "_$0");
+		System.out.println("tempName.toLowerCase().substring(1) = " + tempName.toLowerCase()
+		  .substring(1));
+
+		System.out.println("\"MyNameIsIceClean\".replaceAll(\"[A-Z]\", \"_$0\").toLowerCase().substring(1) = " +
+		  "MyNameIsIceClean".replaceAll("[A-Z]", "_$0")
+		  .toLowerCase()
+		  .substring(1));
+		/*String[] partName = tempName.split("_");
+		for (String name : partName) {
+			System.out.print(name + " ");
+		}*/
+
+	}
+
 
 }
