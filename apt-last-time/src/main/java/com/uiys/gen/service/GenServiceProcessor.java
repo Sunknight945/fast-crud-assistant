@@ -93,6 +93,7 @@ public class GenServiceProcessor extends AbstractCodeGenProcessor {
 		MethodSpec findById = MethodSpec.methodBuilder("findById")
 		  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
 		  .addParameter(getTableIdTypeName(typeElement), "id")
+		  .addParameter(ClassName.get(Boolean.class), "throwExt")
 		  .returns(ClassName.get(context.getVoPackageName(), context.getVoClassName()))
 		  .build();
 		builder.addMethod(findById);

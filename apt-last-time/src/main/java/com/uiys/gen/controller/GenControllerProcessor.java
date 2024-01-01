@@ -286,8 +286,8 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 				.addMember("value", "$S", "findById/{id}")
 				.build())
 			  .addModifiers(Modifier.PUBLIC)
-			  .addCode(CodeBlock.of("$T byId = $L.findById(id); \n", ClassName.get(context.getVoPackageName(),
-				context.getVoClassName()), serviceFieldName))
+			  .addCode(CodeBlock.of("$T byId = $L.findById(id, $T.TRUE); \n", ClassName.get(context.getVoPackageName(),
+				context.getVoClassName()), serviceFieldName, ClassName.get(Boolean.class)))
 			  .addCode(CodeBlock.of("$T response = $T.INSTANCE.vo2CustomerResponse(byId); \n",
 				ClassName.get(context.getResponsePackageName(), context.getResponseClassName()),
 				ClassName.get(context.getMapperPackageName(), context.getMapperClassName())))
@@ -341,8 +341,7 @@ public class GenControllerProcessor extends AbstractCodeGenProcessor {
 			pageQuery.addCode(codeBlock1);
 
 			CodeBlock codeBlock2 = CodeBlock.of("$T<$T> pageResponse = $T.change(page, $T" + ".INSTANCE" +
-				"::vo2CustomerResponse); \n",
-			  ClassName.get(Page.class),
+				"::vo2CustomerResponse); \n", ClassName.get(Page.class),
 			  ClassName.get(nameContext.getResponsePackageName(), nameContext.getResponseClassName()),
 			  ClassName.get(PageUtil.class), ClassName.get(nameContext.getMapperPackageName(),
 				nameContext.getMapperClassName()));

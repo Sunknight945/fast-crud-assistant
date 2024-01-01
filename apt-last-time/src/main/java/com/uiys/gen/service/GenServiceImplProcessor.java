@@ -1,6 +1,7 @@
 package com.uiys.gen.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import com.google.auto.service.AutoService;
 import com.querydsl.core.BooleanBuilder;
 import com.squareup.javapoet.ClassName;
@@ -89,23 +90,28 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .build();
 		parameterSpecs.add(all);
 
-
 		ClassName voClass = ClassName.get(context.getVoPackageName(), context.getVoClassName());
-		MethodSpec findByPage = MethodSpec.methodBuilder("findAll")
+		MethodSpec.Builder findAllMethod = MethodSpec.methodBuilder("findAll")
 		  .addModifiers(Modifier.PUBLIC, Modifier.PUBLIC)
 		  .addParameters(parameterSpecs)
-		  .addComment("\t添加\n" + "\t$T<$T> page = $L.findAll(booleanBuilder, $T.get(wrapper));\n" + "\tif ($T" +
-			  ".isEmpty" + "(page.getContent())) {\n" + "\t\treturn all;\n" + "\t}\n" + "\tall.addAll($T.content" +
-			  "(page," +
-			  " $T::new));" + "\n" + "\twrapper.setPageNum(wrapper.getPageNum() + 1);\n" + "\treturn findAll(wrapper," +
-			  " " +
-			  "booleanBuilder," + " " + "all);", ClassName.get(Page.class), typeElement, repositoryName(),
-			ClassName.get(PageUtil.class), ClassName.get(CollUtil.class), ClassName.get(AssembleUtils.class),
-			voClass)
 		  .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(context.getVoPackageName(),
-			context.getVoClassName())))
-		  .build();
-		builder.addMethod(findByPage);
+			context.getVoClassName())));
+		findAllMethod.addCode(CodeBlock.of("$T<$T> page = $L.findAll(booleanBuilder, $T.get(wrapper));\n" +
+			"if ($T.isEmpty(page.getContent())) {\n" +
+			"\treturn all;\n" +
+			"}\n" +
+			"all.addAll($T.content(page, $T::new));\n" +
+			"wrapper.setPageNum(wrapper.getPageNum() + 1);\n" +
+			"return findAll(wrapper, booleanBuilder, all);",
+		  ClassName.get(Page.class),
+		  typeElement,
+		  repositoryName(),
+		  ClassName.get(PageUtil.class),
+		  ClassName.get(CollUtil.class),
+		  ClassName.get(AssembleUtils.class),
+		  voClass));
+
+		builder.addMethod(findAllMethod.build());
 	}
 
 	private void addFindByPageXxMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
@@ -137,21 +143,35 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 	private void addFindByIdMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
 
 		ClassName vo = ClassName.get(context.getVoPackageName(), context.getVoClassName());
+
+		String voL = vo.simpleName()
+		  .substring(0, 1)
+		  .toLowerCase() + vo.simpleName()
+		  .substring(1);
+
+
 		MethodSpec.Builder findById = MethodSpec.methodBuilder("findById")
 		  .addModifiers(Modifier.PUBLIC)
 		  .addParameter(getTableIdTypeName(typeElement), "id")
+		  .addParameter(ClassName.get(Boolean.class), "throwExt")
 		  .addAnnotation(Override.class)
 		  .returns(vo);
 		String repositoryName = repositoryName();
-		CodeBlock codeBlock = CodeBlock.of("return $L.findById(id)\n" + "\t\t" + ".map($T::new)\n" + "\t\t" +
-			".orElseThrow(() -> new $T($T.NOTFOUND, $T.name($T.class, id)));",
+		CodeBlock codeBlock = CodeBlock.of(
+			"$T $L = $L.findById(id).map($T::new).orElse(null);\n" +
+			"$T.isTrue(!(throwExt && $L==null),()-> new $T($T.NOTFOUND, $T.name($T.class, id)));\n" +
+			"return $L;",
+		  vo,
+		  voL,
 		  repositoryName,
 		  vo,
+		  ClassName.get(Assert.class),
+		  voL,
 		  ClassName.get(BusinessException.class),
 		  ClassName.get(ErrorCode.class),
 		  ClassName.get(TorE.class),
-		  ClassName.get(typeElement))
-		  ;
+		  ClassName.get(typeElement),
+		  voL);
 
 
 		findById.addCode(codeBlock);
