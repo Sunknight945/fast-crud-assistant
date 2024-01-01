@@ -20,6 +20,7 @@ import com.uiys.jpa.util.AssembleUtils;
 import com.uiys.jpa.valid.BusinessException;
 import com.uiys.spi.CodeGenProcessor;
 import com.uiys.util.StringUtils;
+import com.uiys.util.TorE;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,6 +133,7 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		builder.addMethod(findByPage.build());
 	}
 
+
 	private void addFindByIdMethod(DefaultNameContext context, TypeSpec.Builder builder, TypeElement typeElement) {
 
 		ClassName vo = ClassName.get(context.getVoPackageName(), context.getVoClassName());
@@ -142,8 +144,15 @@ public class GenServiceImplProcessor extends AbstractCodeGenProcessor {
 		  .returns(vo);
 		String repositoryName = repositoryName();
 		CodeBlock codeBlock = CodeBlock.of("return $L.findById(id)\n" + "\t\t" + ".map($T::new)\n" + "\t\t" +
-			".orElseThrow" + "(() -> new " + "$T($T" + ".NOTFOUND, \"data $L.id: \" + id));", repositoryName, vo,
-		  ClassName.get(BusinessException.class), ClassName.get(ErrorCode.class), getEntity(typeElement));
+			".orElseThrow(() -> new $T($T.NOTFOUND, $T.name($T.class, id)));",
+		  repositoryName,
+		  vo,
+		  ClassName.get(BusinessException.class),
+		  ClassName.get(ErrorCode.class),
+		  ClassName.get(TorE.class),
+		  ClassName.get(typeElement))
+		  ;
+
 
 		findById.addCode(codeBlock);
 
