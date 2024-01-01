@@ -23,20 +23,17 @@ public class TorE {
 	}
 
 	public static String getTableOrEntityName(Class<?> clz, String id) {
-		return MAP.computeIfAbsent(clz, str -> TorE.putAndGetName(clz)).replace(FLAG, id);
+		return MAP.computeIfAbsent(clz, str -> putAndGetName(clz)).replace(FLAG, id);
 	}
 
 
 	public static String putAndGetName(Class<?> clz) {
-		String name = "";
+		String name;
 		Table table = AnnotationUtils.findAnnotation(clz, Table.class);
-
 		if (Objects.nonNull(table) && StrUtil.isNotBlank(table.name())) {
-			String tableName = table.name();
-			name = "not found: select * from " + tableName + " where id = '" + FLAG + "';";
+			name = "not found: select * from " + table.name() + " where id = '" + FLAG + "';";
 		} else {
-			String entityName = clz.getSimpleName();
-			name = "not found: data " + entityName + ".id = '" + FLAG + "';";
+			name = "not found: data " + clz.getSimpleName() + ".id = '" + FLAG + "';";
 		}
 		return name;
 	}
