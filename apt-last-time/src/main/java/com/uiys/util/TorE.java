@@ -23,8 +23,7 @@ public class TorE {
 	}
 
 	public static String getTableOrEntityName(Class<?> clz, String id) {
-		String msg = MAP.computeIfAbsent(clz, item -> TorE.putAndGetName(clz));
-		return msg.replace(FLAG, id);
+		return MAP.computeIfAbsent(clz, str -> TorE.putAndGetName(clz)).replace(FLAG, id);
 	}
 
 
@@ -34,10 +33,10 @@ public class TorE {
 
 		if (Objects.nonNull(table) && StrUtil.isNotBlank(table.name())) {
 			String tableName = table.name();
-			name = "not found, select * from '" + tableName + "' where id = '" + FLAG + "';";
+			name = "not found: select * from " + tableName + " where id = '" + FLAG + "';";
 		} else {
 			String entityName = clz.getSimpleName();
-			name = "not found, data " + entityName + ".id = '" + FLAG + "';";
+			name = "not found: data " + entityName + ".id = '" + FLAG + "';";
 		}
 		return name;
 	}
